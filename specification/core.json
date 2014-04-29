@@ -1,0 +1,76 @@
+{
+  "types": {
+    "root": {
+      "category": "actor",
+      "typeName": "root",
+      "methods": [
+        {
+          "name": "echo",
+          "request": {
+            "string": { "_arg": 0, "type": "string" }
+          },
+          "response": {
+            "string": { "_retval": "string" }
+          }
+        },
+        {
+          "name": "listTabs",
+          "request": {},
+          "response": { "_retval": "tablist" }
+        },
+        {
+          "name": "protocolDescription",
+          "request": {},
+          "response": { "_retval": "json" }
+        }
+      ],
+      "events": {
+        "tabListChanged": {}
+      }
+    },
+    "tablist": {
+      "category": "dict",
+      "typeName": "tablist",
+      "specializations": {
+        "selected": "number",
+        "tabs": "array:tab",
+        "url": "string",
+        "consoleActor": "console",
+        "inspectorActor": "inspector",
+        "styleSheetsActor": "stylesheets",
+        "styleEditorActor": "styleeditor",
+        "memoryActor": "memory",
+        "eventLoopLagActor": "eventLoopLag",
+        "preferenceActor": "preference",
+        "deviceActor": "device",
+
+        "profilerActor": "profiler",
+        "chromeDebugger": "chromeDebugger",
+        "webappsActor": "webapps"
+      }
+    },
+    "tab": {
+      "category": "dict",
+      "typeName": "tab",
+      "specializations": {
+        "title": "string",
+        "url": "string",
+        "outerWindowID": "number",
+        "inspectorActor": "inspector",
+        "callWatcherActor": "call-watcher",
+        "canvasActor": "canvas",
+        "webglActor": "webgl",
+        "webaudioActor": "webaudio",
+        "storageActor": "storage",
+        "gcliActor": "gcli",
+        "memoryActor": "memory",
+        "eventLoopLag": "eventLoopLag",
+        "styleSheetsActor": "styleSheets",
+        "styleEditorActor": "styleEditor",
+
+        "console": "console",
+        "trace": "trace"
+      }
+    }
+  }
+}
