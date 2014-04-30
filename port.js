@@ -1,4 +1,3 @@
-(function(exports) {
 "use strict";
 
 var Socket = require("net").Socket;
@@ -48,14 +47,8 @@ var Port = Class({
       var size = parseInt(buffer.slice(0, index));
       var start = index + 1;
       var end = start + size;
-      console.log({ size: size,
-                    start: start,
-                    end: end,
-                   length: buffer.length
-                  });
       if (buffer.length >= end) {
         var frame = buffer.slice(start, end).toString();
-        console.log("<--", frame);
         this.dispatchEvent(new Message(JSON.parse(frame)));
         buffer = buffer.slice(end);
       } else {
@@ -72,7 +65,3 @@ var Port = Class({
 });
 
 exports.Port = Port;
-
-
-})(typeof(exports) !== "undefined" ? exports : this);
-

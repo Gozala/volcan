@@ -1,4 +1,3 @@
-(function(exports) {
 "use strict";
 
 var Class = require("./class").Class;
@@ -84,6 +83,3 @@ var Connection = Class({
     this.flush();
   },
 });
-
-})(typeof(exports) !== "undefined" ? exports : this);
-

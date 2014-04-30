@@ -29,9 +29,9 @@
       }
     },
     "tablist": {
-      "category": "dict",
+      "category": "actor",
       "typeName": "tablist",
-      "specializations": {
+      "fields": {
         "selected": "number",
         "tabs": "array:tab",
         "url": "string",
@@ -50,9 +50,9 @@
       }
     },
     "tab": {
-      "category": "dict",
+      "category": "actor",
       "typeName": "tab",
-      "specializations": {
+      "fields": {
         "title": "string",
         "url": "string",
         "outerWindowID": "number",
@@ -65,11 +65,11 @@
         "gcliActor": "gcli",
         "memoryActor": "memory",
         "eventLoopLag": "eventLoopLag",
-        "styleSheetsActor": "styleSheets",
-        "styleEditorActor": "styleEditor",
+        "styleSheetsActor": "stylesheets",
+        "styleEditorActor": "styleeditor",
 
-        "console": "console",
-        "trace": "trace"
+        "consoleActor": "console",
+        "traceActor": "trace"
       }
     }
   }

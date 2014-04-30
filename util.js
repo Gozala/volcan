@@ -1,4 +1,3 @@
-(function(exports) {
 "use strict";
 
 var keys = Object.keys;
@@ -53,6 +52,3 @@ var findPath = function(object, key) {
   return path;
 };
 exports.findPath = findPath;
-
-})(typeof(exports) !== "undefined" ? exports : this);
-

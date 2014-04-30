@@ -1,4 +1,3 @@
-(function(exports) {
 "use strict";
 
 var describe = Object.getOwnPropertyDescriptor;
@@ -21,6 +20,3 @@ var Class = function(fields) {
   return constructor;
 };
 exports.Class = Class;
-
-})(typeof(exports) !== "undefined" ? exports : this);
-

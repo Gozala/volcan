@@ -1,7 +1,7 @@
-(function(exports) {
 "use strict";
 
 var Class = require("./class").Class;
+var Front = require("./front").Front;
 var util = require("./util");
 var keys = util.keys;
 var values = util.values;
@@ -15,7 +15,7 @@ var typeFor = function(client, typeName) {
   if (!type)
     defineType(client, typeName);
 
-  return type || client.types[type];
+  return type || client.types[typeName];
 };
 exports.typeFor = typeFor;
 
@@ -43,7 +43,7 @@ exports.defineType = defineType;
 var makeCompoundType = function(name) {
   var index = name.indexOf(":");
   var baseType = name.slice(0, index);
-  var subType = parts.slice(1);
+  var subType = name.slice(index + 1);
 
   return baseType === "array" ? new ArrayOf(subType) :
          baseType === "nullable" ? new Maybe(subType) :
@@ -125,6 +125,21 @@ var ArrayOf = Class({
 });
 exports.ArrayOf = ArrayOf;
 
+function makeField(name, type) {
+  return {
+    enumerable: true,
+    configurable: true,
+    get: function() {
+      Object.defineProperty(this, name, {
+        configurable: false,
+        value: this.client.read(this.state[name], type)
+      });
+      return this[name];
+    }
+  }
+}
+exports.makeField = makeField;
+
 var Dictionary = Class({
   exteds: Type,
   category: "dict",
@@ -132,13 +147,25 @@ var Dictionary = Class({
   constructor: function(descriptor) {
     this.type = descriptor.typeName;
     this.types = descriptor.specializations;
+
+    var getters = {};
+    pairs(descriptor.specializations).forEach(function(pair) {
+      var key = pair[0], type = pair[1];
+      getters[key] = makeField(key, type);
+    });
+
+    var proto = Object.defineProperties({
+      types: this.types,
+      constructor: function(input, client) {
+        this.state = input;
+        this.client = client;
+      }
+    }, getters);
+
+    this.class = new Class(proto);
   },
   read: function(input, client) {
-    var output = {};
-    for (var key in input) {
-      output[key] = client.read(input[key], this.types[key]);
-    }
-    return output;
+    return new this.class(input, client);
   },
   write: function(input, client) {
     var output = {};
@@ -156,17 +183,43 @@ var Actor = Class({
   get name() { return this.type; },
   constructor: function(descriptor) {
     this.type = descriptor.typeName;
-  },
-  make: function(id, client) {
-    var actor = client.make(id, this.type);
-    client.marshallPool().manage(actor);
-    return actor;
+
+
+    var events = Object.create(null);
+    var fields = {};
+    var proto = {
+      extends: Front,
+      Front: Front,
+      constructor: function(state, client) {
+        this.state = state;
+        this.Front(client);
+      },
+      events: events
+    };
+
+    (descriptor.methods || []).forEach(function(descriptor) {
+      proto[descriptor.name] = makeMethod(descriptor);
+    });
+
+    pairs(descriptor.events || {}).forEach(function(pair) {
+      var name = pair[0], descriptor = pair[1];
+      events[name] = new Event(descriptor);
+    });
+
+    pairs(descriptor.fields || {}).forEach(function(pair) {
+      var name = pair[0], type = pair[1];
+      fields[name] = makeField(name, type);
+    });
+
+    this.class = Class(Object.defineProperties(proto, fields));
   },
   read: function(input, client, detail) {
-    var id = typeof(input) === "string" ? input : input.actor;
+    var state = typeof(input) === "string" ? { actor: input } :
+                input;
 
-    var actor = client.get(id) || this.make(id);
-    actor.form(input, detail);
+    var actor = client.get(state.actor) || new this.class(state, client);
+    // client.marshallPool().manage(actor);
+    actor.form(state, detail);
 
     return actor;
   },
@@ -198,17 +251,22 @@ var Method = Class({
   constructor: function(descriptor) {
     this.type = descriptor.name;
     this.path = findPath(descriptor.response, "_retval");
-    this.responseType = query(descriptor.response, this.path)._retval;
+    this.responseType = this.path && query(descriptor.response, this.path)._retval;
     this.requestType = descriptor.request.type;
 
     var params = [];
     for (var key in descriptor.request) {
       if (key !== "type") {
         var param = descriptor.request[key];
-        params[param._arg] = {
+        var index = param._arg || param._option;
+        var isParam = param._option === index;
+        var isArgument = param._arg === index;
+        params[index] = {
           type: param.type,
           key: key,
-          index: param._arg
+          index: index,
+          isParam: isParam,
+          isArgument: isArgument
         };
       }
     }
@@ -225,6 +283,31 @@ var Method = Class({
   }
 });
 exports.Method = Method;
+
+function makeMethod(descriptor) {
+  var type = new Method(descriptor);
+  return descriptor.oneway ? makeUnidirecationalMethod(descriptor, type) :
+         makeBidirectionalMethod(descriptor, type);
+}
+
+var makeUnidirecationalMethod = function(descriptor, type) {
+  return function() {
+    var packet = type.write(arguments, this.client);
+    this.client.send(packet);
+    return Promise.resolve(void(0));
+  };
+};
+
+var makeBidirectionalMethod = function(descriptor, type) {
+  return function() {
+    var client = this.client;
+    var packet = type.write(arguments, client);
+    return this.request(packet).then(function(packet) {
+      return type.read(packet, client);
+    });
+  };
+};
+
 
 var primitive = new Primitve("primitive");
 var string = new Primitve("string");
@@ -328,6 +411,3 @@ var Event = Class({
   }
 });
 exports.Event = Event;
-
-})(typeof(exports) !== "undefined" ? exports : this);
-

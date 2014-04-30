@@ -1,4 +1,3 @@
-(function(exports) {
 "use strict";
 
 var Symbol = require("es6-symbol")
@@ -38,6 +37,3 @@ var EventTarget = Class({
   }
 });
 exports.EventTarget = EventTarget;
-
-})(typeof(exports) !== "undefined" ? exports : this);
-
