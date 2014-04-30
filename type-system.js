@@ -454,29 +454,6 @@ var TypeSystem = Class({
           }
         }
       },
-      /*
-      request: function(packet) {
-        var requests = this.requests;
-        packet.to = this.id;
-
-        return new Promise(function(resolve, reject) {
-          requests.push({ resolve: resolve, reject: reject });
-          client.send(packet);
-        });
-      },
-      receive: function(packet) {
-        var event = this.events[packet.type];
-        if (event) {
-          this.dispatchEvent(event.read(packet));
-        } else if (this.request.length > 0) {
-          var request = this.requests.pop();
-          if (packet.error)
-            request.reject(packet);
-          else
-            request.resolve(packet);
-        }
-      },
-      */
       requestTypes: function() {
         return this.request({
           to: this.id,

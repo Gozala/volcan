@@ -68,7 +68,6 @@ var Client = Class({
       if (event) {
         actor.dispatchEvent(event.read(packet));
       } else {
-        console.log(">>>", packet);
         var index = this.requests.indexOf(packet.from);
         if (index >= 0) {
           var request = this.requests.splice(index, 2).pop();
