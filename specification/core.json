@@ -29,9 +29,9 @@
       }
     },
     "tablist": {
-      "category": "actor",
+      "category": "dict",
       "typeName": "tablist",
-      "fields": {
+      "specializations": {
         "selected": "number",
         "tabs": "array:tab",
         "url": "string",

@@ -15,7 +15,12 @@ function makeHandler(handler) {
 
 var EventTarget = Class({
   constructor: function() {
-    this[$emitter] = new EventEmitter();
+    Object.defineProperty(this, $emitter, {
+      enumerable: false,
+      configurable: true,
+      writable: true,
+      value: new EventEmitter()
+    });
   },
   addEventListener: function(type, handler) {
     if (typeof(handler) === "function") {
