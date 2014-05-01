@@ -1,7 +1,6 @@
 "use strict";
 
 var Class = require("./class").Class;
-var Front = require("./front").Front;
 var util = require("./util");
 var keys = util.keys;
 var values = util.values;
@@ -66,12 +65,12 @@ var TypeSystem = Class({
       null;
     };
 
-    var read = function(input, typeName) {
-      return typeFor(typeName).read(input);
+    var read = function(input, context, typeName) {
+      return typeFor(typeName).read(input, context);
     }
     this.read = read;
 
-    var write = function(input, typeName) {
+    var write = function(input, context, typeName) {
       return typeFor(typeName).write(input);
     };
     this.write = write;
@@ -84,10 +83,10 @@ var TypeSystem = Class({
         return this.category ? this.category + ":" + this.type :
         this.type;
       },
-      read: function(input) {
+      read: function(input, context) {
         throw new TypeError("`Type` subclass must implement `read`");
       },
-      write: function(input) {
+      write: function(input, context) {
         throw new TypeError("`Type` subclass must implement `write`");
       }
     });
@@ -97,10 +96,10 @@ var TypeSystem = Class({
       constuctor: function(type) {
         this.type = type;
       },
-      read: function(input) {
+      read: function(input, context) {
         return input;
       },
-      write: function(input) {
+      write: function(input, context) {
         return input;
       }
     });
@@ -111,15 +110,15 @@ var TypeSystem = Class({
       constructor: function(type) {
         this.type = type;
       },
-      read: function(input) {
+      read: function(input, context) {
         return input === null ? null :
         input === void(0) ? void(0) :
-        read(input, this.type);
+        read(input, context, this.type);
       },
-      write: function(input) {
+      write: function(input, context) {
         return input === null ? null :
         input === void(0) ? void(0) :
-        write(input, this.type);
+        write(input, context, this.type);
       }
     });
 
@@ -129,13 +128,13 @@ var TypeSystem = Class({
       constructor: function(type) {
         this.type = type;
       },
-      read: function(input) {
+      read: function(input, context) {
         var type = this.type;
-        return input.map(function($) { return read($, type) });
+        return input.map(function($) { return read($, context, type) });
       },
-      write: function(input) {
+      write: function(input, context) {
         var type = this.type;
-        return input.map(function($) { return write($, type) });
+        return input.map(function($) { return write($, context, type) });
       }
     });
 
@@ -146,7 +145,7 @@ var TypeSystem = Class({
         get: function() {
           Object.defineProperty(this, name, {
             configurable: false,
-            value: read(this.state[name], type)
+            value: read(this.state[name], this.context, type)
           });
           return this[name];
         }
@@ -164,7 +163,7 @@ var TypeSystem = Class({
     var DictionaryType = Class({});
 
     var Dictionary = Class({
-      exteds: Type,
+      extends: Type,
       category: "dict",
       get name() { return this.type; },
       constructor: function(descriptor) {
@@ -172,26 +171,34 @@ var TypeSystem = Class({
         this.types = descriptor.specializations;
 
         var proto = Object.defineProperties({
-          exteds: DictionaryType,
-          constructor: function(state) {
-            Object.defineProperty(this, "state", {
-              enumerable: false,
-              writable: true,
-              configurable: true,
-              value: state
+          extends: DictionaryType,
+          constructor: function(state, context) {
+            Object.defineProperties(this, {
+              state: {
+                enumerable: false,
+                writable: true,
+                configurable: true,
+                value: state
+              },
+              context: {
+                enumerable: false,
+                writable: false,
+                configurable: true,
+                value: context
+              }
             });
           }
         }, makeFields(this.types));
 
         this.class = new Class(proto);
       },
-      read: function(input) {
-        return new this.class(input);
+      read: function(input, context) {
+        return new this.class(input, context);
       },
-      write: function(input) {
+      write: function(input, context) {
         var output = {};
         for (var key in input) {
-          output[key] = write(value, types[key]);
+          output[key] = write(value, context, types[key]);
         }
         return output;
       }
@@ -219,7 +226,7 @@ var TypeSystem = Class({
     };
 
     var Actor = Class({
-      exteds: Type,
+      extends: Type,
       category: "actor",
       get name() { return this.type; },
       constructor: function(descriptor) {
@@ -232,14 +239,8 @@ var TypeSystem = Class({
 
         var proto = {
           extends: Front,
-          constructor: function(state) {
-            Object.defineProperty(this, "state", {
-              enumerable: false,
-              writable: true,
-              configurable: true,
-              value: state
-            });
-            Front.call(this);
+          constructor: function() {
+            Front.apply(this, arguments);
           },
           events: events
         };
@@ -248,16 +249,15 @@ var TypeSystem = Class({
 
         this.class = Class(proto);
       },
-      read: function(input, detail) {
+      read: function(input, context, detail) {
         var state = typeof(input) === "string" ? { actor: input } : input;
 
-        var actor = client.get(state.actor) || new this.class(state);
-        actor.marshallPool.manage(actor);
-        actor.form(state, detail);
+        var actor = client.get(state.actor) || new this.class(state, context);
+        actor.form(state, detail, context);
 
         return actor;
       },
-      write: function(input, detail) {
+      write: function(input, context, detail) {
         return input.id;
       }
     });
@@ -271,17 +271,17 @@ var TypeSystem = Class({
         this.actorType = parts[0]
         this.detail = parts[1];
       },
-      read: function(input) {
-        return typeFor(this.actorType).read(input, this.detail);
+      read: function(input, context) {
+        return typeFor(this.actorType).read(input, context, this.detail);
       },
-      write: function(input) {
-        return typeFor(this.actorType).write(input, this.detail);
+      write: function(input, context) {
+        return typeFor(this.actorType).write(input, context, this.detail);
       }
     });
     exports.ActorDetail = ActorDetail;
 
     var Method = Class({
-      exteds: Type,
+      extends: Type,
       constructor: function(descriptor) {
         this.type = descriptor.name;
         this.path = findPath(descriptor.response, "_retval");
@@ -306,27 +306,55 @@ var TypeSystem = Class({
         }
         this.params = params;
       },
-      read: function(input) {
-        return read(query(input, this.path), this.responseType);
+      read: function(input, context) {
+        return read(query(input, this.path), context, this.responseType);
       },
-      write: function(input) {
+      write: function(input, context) {
         return this.params.reduce(function(result, param) {
-          result[param.key] = write(input[param.index], param.type);
+          result[param.key] = write(input[param.index], context, param.type);
           return result;
         }, {type: this.type});
       }
     });
     exports.Method = Method;
 
+    var profiler = function(method, id) {
+      return function() {
+        var self = this;
+        var start = new Date();
+        return method.apply(this, arguments).then(function(result) {
+          var end = new Date();
+          client.telemetry.add(id, +end - start);
+          return result;
+        });
+      };
+    };
+
+    var destructor = function(method) {
+      return function() {
+        return method.apply(this, arguments).then(function(result) {
+          client.release(this);
+          return result;
+        });
+      };
+    };
+
     function makeMethod(descriptor) {
       var type = new Method(descriptor);
-      return descriptor.oneway ? makeUnidirecationalMethod(descriptor, type) :
-      makeBidirectionalMethod(descriptor, type);
+      var method = descriptor.oneway ? makeUnidirecationalMethod(descriptor, type) :
+                   makeBidirectionalMethod(descriptor, type);
+
+      if (descriptor.telemetry)
+        method = profiler(method);
+      if (descriptor.release)
+        method = destructor(method);
+
+      return method;
     }
 
     var makeUnidirecationalMethod = function(descriptor, type) {
       return function() {
-        var packet = type.write(arguments);
+        var packet = type.write(arguments, this);
         packet.to = this.id;
         client.send(packet);
         return Promise.resolve(void(0));
@@ -334,11 +362,14 @@ var TypeSystem = Class({
     };
 
     var makeBidirectionalMethod = function(descriptor, type) {
-      var read = type.read.bind(type);
       return function() {
-        var packet = type.write(arguments);
+        var context = this.context;
+        var packet = type.write(arguments, context);
+        var context = this.context;
         packet.to = this.id;
-        return client.request(packet).then(read);
+        return client.request(packet).then(function(packet) {
+          return type.read(packet, context);
+        });
       };
     };
 
@@ -357,92 +388,47 @@ var TypeSystem = Class({
           }
         }
       },
-      read: function(input) {
+      read: function(input, context) {
         var output = {};
         var types = this.types;
         for (var key in input) {
-          output[key] = read(input[key], types[key]);
+          output[key] = read(input[key], context, types[key]);
         }
         return output;
       },
-      write: function(input) {
+      write: function(input, context) {
         var output = {};
         var types = this.types;
         for (var key in this.types) {
-          output[key] = write(input[key], types[key]);
+          output[key] = write(input[key], context, types[key]);
         }
         return output;
       }
     });
 
-
-    var Pool = Class({
+    var Front = Class({
       extends: EventTarget,
       EventTarget: EventTarget,
-      constructor: function() {
-        Object.defineProperty(this, "workers", {
-          configurable: true,
-          writable: true,
-          enumerable: false,
-          value: Object.create(null)
-        });
+      constructor: function(state) {
         this.EventTarget();
-        client.addPool(this);
-      },
-      get id() {
-        throw Error("Implementation must implement id field");
-      },
-      get parent() {
-        return client.poolFor(this.id);
-      },
-      get marshallPool() {
-        return this;
-      },
-
-      has: function(id) {
-        return id in this.workers;
-      },
-      get: function(id) {
-        return this.workers[id];
-      },
-
-      manage: function(worker) {
-        this.workers[worker.id] = worker;
-      },
-      unmanage: function(worker) {
-        delete this.workers[worker.id];
-      },
-
-      destroy: function() {
-        if (!this.destroyed) {
-          this.destroyed = true;
-
-          if (this.parent) {
-            this.parent.unmanage(this);
+        Object.defineProperties(this,  {
+          state: {
+            enumerable: false,
+            writable: true,
+            configurable: true,
+            value: state
           }
+        });
 
-          values(this.workers).forEach(function(worker) {
-            worker.destroy();
-          })
-
-          client.removePool(this);
-          this.workers = Object.create(null);
-        }
-      }
-    });
-    exports.Pool = Pool;
-
-
-    var Front = Class({
-      extends: Pool,
-      Pool: Pool,
-      constructor: function() {
-        this.Pool();
+        client.register(this);
       },
       get id() {
         return this.state.actor;
       },
-      form: function(state, detail) {
+      get context() {
+        return this;
+      },
+      form: function(state, detail, context) {
         if (this.state !== state) {
           if (detail) {
             this.state[detail] = state[detail];
@@ -453,9 +439,13 @@ var TypeSystem = Class({
             }, this);
           }
         }
+
+        if (context) {
+          client.supervise(context, this);
+        }
       },
       requestTypes: function() {
-        return this.request({
+        return client.request({
           to: this.id,
           type: "requestTypes"
         }).then(function(packet) {
