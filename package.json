@@ -1,10 +1,14 @@
 {
   "name": "volcan",
-  "id": "volcan",
   "version": "0.0.1",
-  "description": "volcan",
+  "description": "Client for firefox remote debugging protocol",
   "keywords": [
-    "volcan"
+    "volcan",
+    "firefox",
+    "remote dubugging",
+    "protocol",
+    "debugging",
+    "inspector"
   ],
   "author": "Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)",
   "homepage": "https://github.com/Gozala/volcan",
@@ -16,42 +20,15 @@
   "bugs": {
     "url": "http://github.com/Gozala/volcan/issues/"
   },
-  "devDependencies": {
-    "test": "~0.x.0",
-    "phantomify": "~0.x.0",
-    "retape": "~0.x.0",
-    "tape": "~0.1.5"
-  },
   "main": "./index.js",
-  "scripts": {
-    "test": "npm run test-node && npm run test-browser",
-    "test-browser": "node ./node_modules/phantomify/bin/cmd.js ./test/common.js",
-    "test-node": "node ./test/common.js",
-    "test-tap": "node ./test/tap.js",
-    "postinstall": "npm dedup"
-  },
-  "testling": {
-    "files": "test/tap.js",
-    "browsers": [
-      "ie/9..latest",
-      "chrome/25..latest",
-      "firefox/20..latest",
-      "safari/5.1..latest",
-      "opera/11.0..latest",
-      "iphone/6..latest",
-      "ipad/6..latest",
-      "android-browser/4.2..latest"
-    ]
-  },
   "licenses": [
     {
-      "type": "MIT",
-      "url": "https://github.com/Gozala/volcan/License.md"
+      "type": "MPL",
+      "version": "2.0",
+      "url": "http://www.mozilla.org/MPL/2.0/"
     }
   ],
   "dependencies": {
-    "es6-set": "0.0.0",
-    "es6-map": "0.0.1",
     "es6-promise": "^1.0.0",
     "es6-symbol": "^0.1.0"
   }

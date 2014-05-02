@@ -1,7 +1,6 @@
 "use strict";
 
 var Class = require("./class").Class;
-var EventTarget = require("./event").EventTarget;
 var TypeSystem = require("./type-system").TypeSystem;
 var values = require("./util").values;
 var Promise = require("es6-promise").Promise;
@@ -9,7 +8,9 @@ var Promise = require("es6-promise").Promise;
 var specification = require("./specification/core.json");
 
 function recoverActorDescriptions(error) {
-  console.error("Error listing actor descriptions:", error);
+  console.warn("Failed to fetch protocol specification (see reason below). " +
+               "Using a fallback protocal specification!",
+               error);
   return require("./specification/protocol.json");
 }
 
@@ -31,7 +32,6 @@ var Telemetry = Class({
 // Consider making client a root actor.
 
 var Client = Class({
-  extends: EventTarget,
   constructor: function() {
     this.root = null;
     this.telemetry = new Telemetry();
@@ -51,22 +51,28 @@ var Client = Class({
     this.release = this.release.bind(this);
   },
   setupTypeSystem: function() {
-    this.typeSystem = new TypeSystem();
+    this.typeSystem = new TypeSystem(this);
     this.typeSystem.registerTypes(specification);
   },
 
-  connect: function(connection) {
-    this.connection = connection;
-    connection.onmessage = this.receive.bind(this);
-    this.connection.start();
+  connect: function(port) {
+    var client = this;
+    return new Promise(function(resolve, reject) {
+      client.port = port;
+      port.onmessage = client.receive.bind(client);
+      client.onReady = resolve;
+      client.onFail = reject;
+
+      port.start();
+    });
   },
   send: function(packet) {
-    this.connection.postMessage(packet);
+    this.port.postMessage(packet);
   },
   request: function(packet) {
-    var requests = this.requests;
+    var client = this;
     return new Promise(function(resolve, reject) {
-      requests.push(packet.to, { resolve: resolve, reject: reject });
+      client.requests.push(packet.to, { resolve: resolve, reject: reject });
       client.send(packet);
     });
   },
@@ -84,14 +90,14 @@ var Client = Class({
           .protocolDescription()
           .catch(recoverActorDescriptions)
           .then(this.typeSystem.registerTypes.bind(this.typeSystem))
-          .then(this.dispatchEvent.bind(this, {type: "ready", target: this}));
+          .then(this.onReady.bind(this, this.root), this.onFail);
     } else {
-      var actor = this.get(packet.from);
+      var actor = this.get(packet.from) || this.root;
       var event = actor.events[packet.type];
       if (event) {
         actor.dispatchEvent(event.read(packet));
       } else {
-        var index = this.requests.indexOf(packet.from);
+        var index = this.requests.indexOf(actor.id);
         if (index >= 0) {
           var request = this.requests.splice(index, 2).pop();
           if (packet.error)

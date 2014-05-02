@@ -10,7 +10,7 @@ var findPath = util.findPath;
 var EventTarget = require("./event").EventTarget;
 
 var TypeSystem = Class({
-  constructor: function(descriptor) {
+  constructor: function(client) {
     var types = Object.create(null);
     var specification = Object.create(null);
 
@@ -292,7 +292,7 @@ var TypeSystem = Class({
         for (var key in descriptor.request) {
           if (key !== "type") {
             var param = descriptor.request[key];
-            var index = param._arg || param._option;
+            var index = "_arg" in param ? param._arg : param._option;
             var isParam = param._option === index;
             var isArgument = param._arg === index;
             params[index] = {
@@ -320,7 +320,6 @@ var TypeSystem = Class({
 
     var profiler = function(method, id) {
       return function() {
-        var self = this;
         var start = new Date();
         return method.apply(this, arguments).then(function(result) {
           var end = new Date();
