@@ -38,7 +38,25 @@ var EventTarget = Class({
       this[$emitter].removeListener(type, handler[$bound]);
   },
   dispatchEvent: function(event) {
+    event.target = this;
     this[$emitter].emit(event.type, event);
   }
 });
 exports.EventTarget = EventTarget;
+
+var MessageEvent = Class({
+  constructor: function(type, options) {
+    this.type = type;
+    this.target = null;
+
+    this.data = options.data;
+    this.origin = options.origin || "";
+    this.lastEventId = options.lastEventId || "";
+    this.channel = options.channel || null;
+    this.source = options.source || null;
+    this.prots = options.ports || null;
+    this.bubbles = options.bubbles || false;
+    this.cancelable = options.cancelable || false;
+  }
+});
+exports.MessageEvent = MessageEvent;

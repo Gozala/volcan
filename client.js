@@ -4,6 +4,7 @@ var Class = require("./class").Class;
 var TypeSystem = require("./type-system").TypeSystem;
 var values = require("./util").values;
 var Promise = require("es6-promise").Promise;
+var MessageEvent = require("./event").MessageEvent;
 
 var specification = require("./specification/core.json");
 
@@ -95,7 +96,10 @@ var Client = Class({
       var actor = this.get(packet.from) || this.root;
       var event = actor.events[packet.type];
       if (event) {
-        actor.dispatchEvent(event.read(packet));
+        var message = new MessageEvent(packet.type, {
+          data: event.read(packet)
+        });
+        actor.dispatchEvent(message);
       } else {
         var index = this.requests.indexOf(actor.id);
         if (index >= 0) {
