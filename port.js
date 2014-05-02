@@ -3,23 +3,14 @@
 var Socket = require("net").Socket;
 var Class = require("./class").Class;
 var EventTarget = require("./event").EventTarget;
-
-var Message = Class({
-  constructor: function(data) {
-    this.data = data;
-  },
-  type: "message",
-  bubbles: true,
-  cancelable: false
-});
+var MessageEvent = require("./event").MessageEvent;
 
 var Port = Class({
   extends: EventTarget,
-  EventTarget: EventTarget,
   constructor: function(port, host) {
     this.port = port;
     this.host = host;
-    this.EventTarget();
+    EventTarget.call(this);
     this.socket = new Socket();
     this.socket.on("data", this.receive.bind(this));
     this.addEventListener("message", this);
@@ -49,7 +40,8 @@ var Port = Class({
       var end = start + size;
       if (buffer.length >= end) {
         var frame = buffer.slice(start, end).toString();
-        this.dispatchEvent(new Message(JSON.parse(frame)));
+        var message = new MessageEvent("message", { data: JSON.parse(frame) });
+        this.dispatchEvent(message);
         buffer = buffer.slice(end);
       } else {
         break;
