@@ -46,17 +46,22 @@ exports.EventTarget = EventTarget;
 
 var MessageEvent = Class({
   constructor: function(type, options) {
+    options = options || {};
     this.type = type;
-    this.target = null;
+    this.data = options.data === void(0) ? null : options.data;
 
-    this.data = options.data;
-    this.origin = options.origin || "";
     this.lastEventId = options.lastEventId || "";
-    this.channel = options.channel || null;
-    this.source = options.source || null;
-    this.prots = options.ports || null;
+    this.origin = options.origin || "";
     this.bubbles = options.bubbles || false;
     this.cancelable = options.cancelable || false;
+  },
+  source: null,
+  ports: null,
+  preventDefault: function() {
+  },
+  stopPropagation: function() {
+  },
+  stopImmediatePropagation: function() {
   }
 });
 exports.MessageEvent = MessageEvent;

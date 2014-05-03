@@ -31,5 +31,13 @@
   "dependencies": {
     "es6-promise": "^1.0.0",
     "es6-symbol": "^0.1.0"
+  },
+  "devDependencies": {
+    "browserify": "3.44.2"
+  },
+  "browser": {
+    "es6-promise": "./browser/promise.js",
+    "./event": "./browser/event.js",
+    "./index": "./browser/index.js"
   }
 }

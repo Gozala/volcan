@@ -8,9 +8,15 @@
 
 ```js
 var volcan = require("volcan");
+var Port = require("volcan/port");
+
+// In case of node.js you would create connection to a firefox
+// using tcp port. In case of firefox add-on you will be given
+// equivalent port instance.
+var port = new Port(8060, "localhost");
 
 spawn(function*() {
-  var root = yield volcan.connect(8060, "localhost");
+  var root = yield volcan.connect(port);
   assert("hello" === yield root.echo("hello"));
   var list = yield root.listTabs();
 
