@@ -1,0 +1,43 @@
+{
+  "name": "volcan",
+  "version": "0.0.1",
+  "description": "Client for firefox remote debugging protocol",
+  "keywords": [
+    "volcan",
+    "firefox",
+    "remote dubugging",
+    "protocol",
+    "debugging",
+    "inspector"
+  ],
+  "author": "Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)",
+  "homepage": "https://github.com/Gozala/volcan",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gozala/volcan.git",
+    "web": "https://github.com/Gozala/volcan"
+  },
+  "bugs": {
+    "url": "http://github.com/Gozala/volcan/issues/"
+  },
+  "main": "./index.js",
+  "licenses": [
+    {
+      "type": "MPL",
+      "version": "2.0",
+      "url": "http://www.mozilla.org/MPL/2.0/"
+    }
+  ],
+  "dependencies": {
+    "es6-promise": "^1.0.0",
+    "es6-symbol": "^0.1.0"
+  },
+  "devDependencies": {
+    "browserify": "3.44.2"
+  },
+  "browser": {
+    "es6-promise": "./browser/promise.js",
+    "./event": "./browser/event.js",
+    "./index": "./browser/index.js"
+  }
+}
