@@ -170,7 +170,7 @@ var Client = Class({
     if (workers) {
       workers.map(this.get).forEach(this.release)
     }
-    this.unergister(actor);
+    this.unregister(actor);
   }
 });
 exports.Client = Client;
