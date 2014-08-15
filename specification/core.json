@@ -70,7 +70,84 @@
 
         "consoleActor": "console",
         "traceActor": "trace"
+      },
+      "methods": [
+         {
+          "name": "attach",
+          "request": {},
+          "response": { "_retval": "json" }
+         }
+      ],
+      "events": {
+        "tabNavigated": {
+           "typeName": "tabNavigated"
+        }
       }
+    },
+    "console": {
+      "category": "actor",
+      "typeName": "console",
+      "methods": [
+        {
+          "name": "evaluateJS",
+          "request": {
+            "text": {
+              "_option": 0,
+              "type": "string"
+            },
+            "url": {
+              "_option": 1,
+              "type": "string"
+            },
+            "bindObjectActor": {
+              "_option": 2,
+              "type": "nullable:string"
+            },
+            "frameActor": {
+              "_option": 2,
+              "type": "nullable:string"
+            },
+            "selectedNodeActor": {
+              "_option": 2,
+              "type": "nullable:string"
+            }
+          },
+          "response": {
+            "_retval": "evaluatejsresponse"
+          }
+        }
+      ],
+      "events": {}
+    },
+    "evaluatejsresponse": {
+      "category": "dict",
+      "typeName": "evaluatejsresponse",
+      "specializations": {
+        "result": "object",
+        "exception": "object",
+        "exceptionMessage": "string",
+        "input": "string"
+      }
+    },
+    "object": {
+      "category": "actor",
+      "typeName": "object",
+      "methods": [
+         {
+           "name": "property",
+           "request": {
+              "name": {
+                "_arg": 0,
+                "type": "string"
+              }
+           },
+           "response": {
+              "descriptor": {
+                "_retval": "json"
+              }
+           }
+         }
+      ]
     }
   }
 }
