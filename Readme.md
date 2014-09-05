@@ -1,6 +1,6 @@
 # Volcan
 
-[Node][] library for remote debugging Firfox. It generates all of the client out of the functionality present on the firefox it connects to. Library has more of DOM API feel to rather than idomatic node, because it was originally designed for firefox add-ons SDK but made compatible with nodejs.
+[Node][] library for remote debugging Firefox. It generates all of the client out of the functionality present on the firefox it connects to. Library has more of DOM API feel to rather than idomatic node, because it was originally designed for firefox add-ons SDK but made compatible with nodejs.
 
 
 ## Usage
